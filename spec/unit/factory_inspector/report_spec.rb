@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 require 'factory_inspector/report'
 
 describe FactoryInspector::Report do
