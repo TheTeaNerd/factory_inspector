@@ -1,6 +1,8 @@
+require 'active_support/notifications'
+require 'factory_girl'
+
 require 'factory_inspector/version'
 require 'factory_inspector/report'
-require 'active_support/notifications'
 
 module FactoryInspector
 
