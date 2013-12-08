@@ -15,7 +15,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = FactoryInspector::VERSION
 
-  gem.add_dependency 'activesupport'
+  gem.add_runtime_dependency 'activesupport'
+  gem.add_runtime_dependency 'factory_girl'
 
   gem.add_development_dependency 'bundler', '>= 1.0.0'
   gem.add_development_dependency 'rspec'
