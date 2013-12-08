@@ -2,16 +2,27 @@ require 'active_support/notifications'
 require 'factory_girl'
 
 require 'factory_inspector/version'
+require 'factory_inspector/configuration'
 require 'factory_inspector/report'
 
 module FactoryInspector
 
+  def self.inspector
+    @inspector ||= Inspector.new
+  end
+
   def self.new
-    FactoryInspector::Inspector.new
+    self.inspector
   end
 
   def self.start_inspection
-    self.new.start_inspection
+    self.inspector.start_inspection
+  end
+
+  def self.generate_report(output_filename=nil)
+    report_file = output_filename || Configuration.default_report_path
+    self.inspector.generate_report(report_file)
+    puts "\n Factory Inspector report in '#{report_file}'"
   end
 
   class Inspector
