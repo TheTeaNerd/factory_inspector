@@ -7,17 +7,18 @@ require 'factory_inspector/report'
 module FactoryInspector
 
   def self.new
-    Inspector.new
+    FactoryInspector::Inspector.new
   end
 
   class Inspector
 
-    def start_inspection
+    def initialize
       @reports = {}
+      instrument_factory_girl
+    end
+
+    def start_inspection
       @inspection_start_time = Time.now
-      ActiveSupport::Notifications.subscribe('factory_girl.run_factory') do |name, start_time, finish_time, id, payload|
-        analyze(payload[:name], start_time, finish_time, payload[:strategy])
-      end
     end
 
     def generate_report(output_filename)
@@ -66,6 +67,12 @@ module FactoryInspector
     end
 
   private
+
+    def instrument_factory_girl
+      ActiveSupport::Notifications.subscribe('factory_girl.run_factory') do |name, start_time, finish_time, id, payload|
+        analyze(payload[:name], start_time, finish_time, payload[:strategy])
+      end
+    end
 
     def calculate_total_factory_time_in_seconds
       @reports.values.reduce(0) do |total_time_in_seconds, report|
