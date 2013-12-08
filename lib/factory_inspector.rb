@@ -10,6 +10,10 @@ module FactoryInspector
     FactoryInspector::Inspector.new
   end
 
+  def self.start_inspection
+    self.new.start_inspection
+  end
+
   class Inspector
 
     def initialize
