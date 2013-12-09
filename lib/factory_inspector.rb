@@ -22,7 +22,7 @@ module FactoryInspector
   def self.generate_report(output_filename=nil)
     report_file = output_filename || Configuration.default_report_path
     self.inspector.generate_report(report_file)
-    puts "\n Factory Inspector report in '#{report_file}'"
+    puts "\nFactory Inspector report in '#{report_file}'"
   end
 
   class Inspector
