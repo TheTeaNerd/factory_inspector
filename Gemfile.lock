@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    factory_inspector (0.0.5)
+    factory_inspector (0.0.6.alpha)
       activesupport
       factory_girl
 
