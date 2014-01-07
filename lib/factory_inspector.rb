@@ -23,10 +23,13 @@ module FactoryInspector
     report_file = output_filename || Configuration.default_report_path
     self.inspector.generate_report(report_file)
     puts "\nFactory Inspector report in '#{report_file}'"
-    generate_summary
+    puts "\n"
+    self.inspector.generate_summary
   end
 
   class Inspector
+
+    REPORTS_IN_SUMMARY = 10
 
     def initialize
       @reports = {}
@@ -38,15 +41,17 @@ module FactoryInspector
     end
 
     def generate_summary
-      puts "\n"
+      puts "  FACTORY INSPECTOR SUMMARY\n"
       puts print_header
-      sorted_reports.take(10) do |report_name, report|
+      puts " \n #{REPORTS_IN_SUMMARY} Factories with the slowest average time per call\n"
+      sorted_reports.take(REPORTS_IN_SUMMARY).each do |report_name, report|
         puts print_formatted_report(report)
       end
     end
 
     def generate_report(output_filename)
       file = File.open(output_filename, 'w')
+      file.write "FACTORY INSPECTOR\n"
       file.write print_header
       sorted_reports.each do |report_name, report|
         file.write print_formatted_report(report)
@@ -78,7 +83,6 @@ module FactoryInspector
 
     def print_header
       header = ''
-      header += "FACTORY INSPECTOR\n"
       header += "  - #{@reports.values.size} factories used, #{calculate_total_factory_calls} calls made\n"
       header += "  - #{sprintf("%6.4f",inspection_time_in_seconds)} seconds of testing inspected\n"
       #header += "  - #{sprintf("%6.4f",factory_time_in_seconds)} seconds in factories\n"
