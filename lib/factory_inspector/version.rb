@@ -1,3 +1,4 @@
+# Gem version number
 module FactoryInspector
-  VERSION = "0.0.7.alpha"
+  VERSION = '0.0.9'
 end

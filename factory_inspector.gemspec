@@ -2,23 +2,23 @@
 require File.expand_path('../lib/factory_inspector/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["David Kennedy"]
-  gem.email         = ["david.kennedy@examtime.com"]
-  gem.description   = %q{This very simple gem generates reports on how FactoryGirl factories are being used in your test runs.}
-  gem.summary       = %q{Reports on how FactoryGirl is used in test runs.}
-  gem.homepage      = "https://github.com/ExamTime/factory_inspector"
+  gem.authors       = ['David Kennedy']
+  gem.email         = ['dave@dkennedy.org']
+  gem.description   = 'Reports how FactoryGirl is used during tests'
+  gem.summary       = 'Reports how FactoryGirl is used during tests'
+  gem.homepage      = 'https://github.com/TheTeaNerd/factory_inspector'
 
-  gem.files         = `git ls-files`.split($\)
-  gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
-  gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "factory_inspector"
-  gem.require_paths = ["lib"]
+  gem.files         = `git ls-files`.split($OUTPUT_RECORD_SEPARATOR)
+  gem.executables   = gem.files.grep(/^bin\//).map { |f| File.basename(f) }
+  gem.test_files    = gem.files.grep(/^(test|spec|features)\//)
+  gem.name          = 'factory_inspector'
+  gem.require_paths = ['lib']
   gem.version       = FactoryInspector::VERSION
 
   gem.add_runtime_dependency 'activesupport'
-  gem.add_runtime_dependency 'factory_girl'
+  gem.add_runtime_dependency 'term-ansicolor'
 
-  gem.add_development_dependency 'bundler', '>= 1.0.0'
+  gem.add_development_dependency 'bundler'
   gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'pry'
 end
