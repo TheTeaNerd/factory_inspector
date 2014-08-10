@@ -62,7 +62,7 @@ module FactoryInspector
       "  FACTORY NAME                     " \
       "TOTAL  OVERALL   TIME PER  LONGEST   STRATEGIES\n" \
       "                                   " \
-      "CALLS  TIME (s)  CALL (s)  CALL (s)\n\n"
+      "CALLS  TIME (s)  CALL (s)  CALL (s)\n"
     end
 
     def instrument_factory_girl
