@@ -13,12 +13,16 @@ module FactoryInspector
     end
 
     def generate_summary
+      return if @reports.empty?
+
       puts
       puts bold + header + clear
       sorted_reports.take(summary_size).each { |_, report| puts report }
     end
 
     def generate_report(filename)
+      return if @reports.empty?
+
       file = File.open(filename, 'w')
       file.write header
       sorted_reports.each { |_, report| file.write report }
