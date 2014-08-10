@@ -17,6 +17,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'activesupport'
   gem.add_runtime_dependency 'term-ansicolor'
+  gem.add_runtime_dependency 'chronic_duration'
 
   gem.add_development_dependency 'bundler'
   gem.add_development_dependency 'rspec'

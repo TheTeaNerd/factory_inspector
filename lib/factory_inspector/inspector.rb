@@ -1,6 +1,7 @@
 require 'active_support/notifications'
 require 'factory_inspector/report'
 require 'term/ansicolor'
+require 'chronic_duration'
 
 module FactoryInspector
   # Inspects the Factory via the callback `analyze`
@@ -60,9 +61,9 @@ module FactoryInspector
     end
 
     def header
-      "FACTORY INSPECTOR:\n" \
-      "  #{@reports.values.size} factories used, " \
-      "#{total_calls} calls made over #{total_time.round(2)} seconds\n\n" \
+      'FACTORY INSPECTOR: ' \
+      "#{@reports.values.size} factories used, " \
+      "#{total_calls} calls made over #{pretty_total_time}\n\n" \
       "  FACTORY NAME                     " \
       "TOTAL  OVERALL   TIME PER  LONGEST   STRATEGIES\n" \
       "                                   " \
@@ -75,6 +76,10 @@ module FactoryInspector
       notifications.subscribe(event) do |_, start, finish, _, payload|
         analyze(payload[:name], start, finish, payload[:strategy])
       end
+    end
+
+    def pretty_total_time
+      ChronicDuration.output(total_time.round(2), keep_zero: true)
     end
 
     def total_time
