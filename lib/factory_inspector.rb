@@ -1,14 +1,20 @@
-require 'factory_inspector/configuration'
 require 'factory_inspector/inspector'
 
-# Inspects Factories while running and generates reports
+# User facing API
 module FactoryInspector
   def self.instrument
     @inspector ||= Inspector.new
+    true
   end
 
-  def self.generate_report(filename: Configuration.default_report_path)
-    @inspector.generate_summary
-    @inspector.generate_report filename
+  def self.results
+    if @inspector.nil?
+      warn 'WARNING: No FactoryInspector instrumentation found; ' \
+           "did you forget to call 'FactoryInspector.instrument'?"
+    else
+      @inspector.generate_summary
+      @inspector.generate_report
+    end
+    true
   end
 end
