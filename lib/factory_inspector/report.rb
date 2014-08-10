@@ -24,7 +24,7 @@ module FactoryInspector
 
     def all_calls
       callers.map do |stack|
-        stack.join(' -> ').gsub(/\A/,'    ')
+        stack.join(' -> ').gsub(/\A/, '    ')
       end.join("\n") + "\n"
     end
 
@@ -59,9 +59,7 @@ module FactoryInspector
     private
 
     def record_time(time: 0)
-      if time > @worst_time
-        @worst_time = time
-      end
+      @worst_time = time if time > @worst_time
       @total_time += time
     end
   end

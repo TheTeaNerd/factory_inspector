@@ -20,11 +20,11 @@ describe FactoryInspector::Report do
     end
 
     it 'should have a zero worst time' do
-      expect(@report.worst_time_in_seconds).to eq(0)
+      expect(@report.worst_time).to eq(0)
     end
 
     it 'should have a zero total time' do
-      expect(@report.total_time_in_seconds).to eq(0)
+      expect(@report.total_time).to eq(0)
     end
 
     it 'should have recorded no strategies' do
@@ -32,7 +32,7 @@ describe FactoryInspector::Report do
     end
 
     it 'should have a zero time-per-call' do
-      expect(@report.time_per_call_in_seconds).to eq(0)
+      expect(@report.time_per_call).to eq(0)
     end
   end
 
@@ -48,11 +48,11 @@ describe FactoryInspector::Report do
     end
 
     it 'should have recorded the total time' do
-      expect(@report.total_time_in_seconds).to eq(8)
+      expect(@report.total_time).to eq(8)
     end
 
     it 'should report the time per call' do
-      expect(@report.time_per_call_in_seconds).to eq(4)
+      expect(@report.time_per_call).to eq(4)
     end
 
     it 'should report the strategies used' do
