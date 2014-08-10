@@ -23,14 +23,7 @@ Assuming RSpec, edit `spec/spec_helper.rb`:
 
   FactoryInspector.instrument
   RSpec.configure do |config|
-
-    config.before :suite do
-      factory_inspector.start_inspection
-    end
-
-    config.after :suite do
-      FactoryInspector.generate_report
-    end
+    config.after(:suite) { FactoryInspector.results }
   end
 ```
 

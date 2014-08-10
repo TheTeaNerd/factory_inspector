@@ -1,5 +1,6 @@
 require 'active_support/notifications'
 require 'factory_inspector/report'
+require 'factory_inspector/configuration'
 require 'term/ansicolor'
 require 'chronic_duration'
 
@@ -9,6 +10,7 @@ module FactoryInspector
     include Term::ANSIColor
 
     def initialize
+      @here = Dir.getwd
       @reports = {}
       instrument_factory_girl
     end
@@ -21,19 +23,28 @@ module FactoryInspector
       sorted_reports.take(summary_size).each { |_, report| puts report }
     end
 
-    def generate_report(filename)
+    def generate_report(filename: Configuration.default_report_path)
       return if @reports.empty?
 
       file = File.open(filename, 'w')
       file.write header
-      sorted_reports.each { |_, report| file.write report }
+      sorted_reports.each do |name, report|
+        file.write report
+      end
+      file.write("\n\nComplete caller information for each factory:\n")
+      sorted_reports.each do |name, report|
+        file.write "\nFACTORY: '#{name}' " \
+                   "(called #{report.callers.size} times)\n"
+        file.write report.all_calls
+      end
       file.close
-      puts "\nFull report in '#{cyan + filename + clear}'"
+
+      relative_filename = filename.gsub(/#{@here}/, '.')
+      puts "\nFull report in '#{cyan + relative_filename + clear}'"
     end
 
-    # Callback for use by ActiveSupport::Notifications, not for end
-    # user use directly though it has to be public for ActiveSupport
-    # to see it.
+    # Callback for use by ActiveSupport::Notifications.
+    # Has to be public for ActiveSupport to use it.
     #
     # * [factory_name] Factory name
     # * [start_time] The start time of the factory call (seconds)
@@ -41,13 +52,20 @@ module FactoryInspector
     # * [strategy] The strategy used when calling the factory
     #
     def analyze(factory, start, finish, strategy)
-      time_in_seconds = (finish - start)
-      if time_in_seconds == 0.0
+      timegc = (finish - start)
+      if timegc == 0.0
         warn "A call to #{factory} took zero time, cannot analyze. Is TimeCop is use?"
         return
       end
+
+      call_stack = caller.grep(/#{@here}/).map do |call|
+        call.gsub(/\A#{@here}\/(.+)(:\d+):.+\z/, '\1\2')
+      end
+
       @reports[factory] ||= FactoryInspector::Report.new(factory_name: factory)
-      @reports[factory].update(time: time_in_seconds, strategy: strategy)
+      @reports[factory].update(time: timegc,
+                               strategy: strategy,
+                               call_stack: call_stack)
     end
 
     private
@@ -83,7 +101,7 @@ module FactoryInspector
     end
 
     def total_time
-      @reports.values.reduce(0) { |total, report| total + report.total_time_in_seconds }
+      @reports.values.reduce(0) { |total, report| total + report.total_time }
     end
 
     def total_calls
