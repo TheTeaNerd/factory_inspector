@@ -13,6 +13,7 @@ module FactoryInspector
       @here = Dir.getwd
       @reports = {}
       instrument_factory_girl
+      @warnings = []
     end
 
     def generate_summary
@@ -39,6 +40,20 @@ module FactoryInspector
       puts "\nFull report in '#{cyan + relative(filename) + clear}'"
     end
 
+    def generate_warnings_log(filename: Configuration.default_warnings_log_path)
+      return if @warnings.empty?
+
+      file = File.open(filename, 'w')
+      file.write("Factory Inspector - #{@warnings.size} warnings\n")
+      @warnings.each do |warning|
+        file.write("  * #{warning[:message]}\n")
+        file.write("    * #{printable_call_stack(warning[:call_stack])}\n")
+      end
+      file.close
+
+      puts "#{@warnings.size} warnings in '#{cyan + relative(filename) + clear}'"
+    end
+
     # Callback for use by ActiveSupport::Notifications.
     # Has to be public for ActiveSupport to use it.
     #
@@ -50,8 +65,9 @@ module FactoryInspector
     def analyze(factory, start, finish, strategy)
       execution_time = (finish - start)
       if execution_time == 0.0
-        warn "A call to '#{factory}' took zero time, cannot analyze. " \
-             'Time may be frozen if a Gem like TimeCop is being used?'
+        warning(message:  "A call to '#{factory}' took zero time, cannot analyze timing. " \
+                          'Time may be frozen if a Gem like TimeCop is being used?',
+                call_stack: call_stack)
       else
         @reports[factory] ||= Report.new(factory_name: factory)
         @reports[factory].update(time: execution_time,
@@ -61,6 +77,14 @@ module FactoryInspector
     end
 
     private
+
+    def printable_call_stack(call_stack)
+      call_stack.join(' -> ') + "\n"
+    end
+
+    def warning(message: '', call_stack: [])
+      @warnings << { message: message, call_stack: call_stack }
+    end
 
     def relative(filename)
       filename.gsub(/#{@here}/, '.')

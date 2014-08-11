@@ -14,6 +14,7 @@ module FactoryInspector
     else
       @inspector.generate_summary
       @inspector.generate_report
+      @inspector.generate_warnings_log
     end
     true
   end
