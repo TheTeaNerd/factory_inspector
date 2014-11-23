@@ -22,6 +22,7 @@ module FactoryInspector
       puts
       puts bold + header + clear
       sorted_reports.take(summary_size).each { |_, report| puts report }
+      puts "  (Slowest sorted by #{cyan + sort_description + clear}.)"
     end
 
     def generate_report(filename: Configuration.default_report_path)
@@ -29,15 +30,18 @@ module FactoryInspector
 
       file = File.open(filename, 'w')
       file.write header
-      sorted_reports.each { |_, report| file.write report }
+
+      reports = sorted_reports
+      reports.each { |_, report| file.write report }
+
       file.write("\n\nComplete caller information for each factory:\n")
-      sorted_reports.each do |name, report|
+      reports.each do |name, report|
         file.write "\nFACTORY: '#{name}' (#{report.callers.size} calls)\n"
         file.write report.all_calls
       end
       file.close
 
-      puts "\nFull report in '#{cyan + relative(filename) + clear}'"
+      print "\nFull report in '#{cyan + relative(filename) + clear}'"
     end
 
     def generate_warnings_log(filename: Configuration.default_warnings_log_path)
@@ -101,17 +105,21 @@ module FactoryInspector
     end
 
     def sorted_reports
-      @reports.sort.reverse
+      @sorted_reports ||= @reports.sort_by { |_, v| v }.reverse
+    end
+
+    def sort_description
+      FactoryInspector::Report.sort_description
     end
 
     def header
       'FACTORY INSPECTOR: ' \
-      "#{@reports.values.size} factories used, " \
+      "#{@reports.size} factories used, " \
       "#{total_calls} calls made over #{pretty_total_time}\n\n" \
       '  FACTORY NAME                     ' \
-      "TOTAL  OVERALL   TIME PER  LONGEST   STRATEGIES\n" \
+      "TOTAL  TOTAL     TIME PER  LONGEST   STRATEGIES\n" \
       '                                   ' \
-      "CALLS  TIME (s)  CALL (s)  CALL (s)\n"
+      "CALLS  TIME (s)  CALL (s)  CALL (s)  USED\n"
     end
 
     def instrument_factory_girl
@@ -127,15 +135,11 @@ module FactoryInspector
     end
 
     def total_time
-      @reports.values.reduce(0) do |total, report|
-        total + report.total_time
-      end
+      @reports.values.sum(&:total_time)
     end
 
     def total_calls
-      @reports.values.reduce(0) do |total, report|
-        total + report.calls
-      end
+      @reports.values.sum(&:calls)
     end
   end
 end

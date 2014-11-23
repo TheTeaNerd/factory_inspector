@@ -42,8 +42,12 @@ module FactoryInspector
       @callers << call_stack
     end
 
+    def self.sort_description
+      'total time'
+    end
+
     def <=>(other)
-      time_per_call <=> other.time_per_call
+      total_time <=> other.total_time
     end
 
     def to_s
