@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    factory_inspector (0.5.0)
+    factory_inspector (0.6.0)
       activesupport
       chronic_duration
       term-ansicolor
