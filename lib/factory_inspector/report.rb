@@ -23,9 +23,10 @@ module FactoryInspector
     end
 
     def all_calls
-      callers.map do |stack|
-        stack.join(' -> ').gsub(/\A/, '    ')
-      end.join("\n") + "\n"
+      calls_by_count.reduce('') do |memo, (call, count)|
+        memo += "%5s call(s):#{call}\n" % count
+        memo
+      end
     end
 
     def time_per_call
@@ -65,6 +66,13 @@ module FactoryInspector
     def record_time(time: 0)
       @worst_time = time if time > @worst_time
       @total_time += time
+    end
+
+    def calls_by_count
+      callers.map { |stack| stack.join(' -> ').gsub(/\A/, '    ') }
+        .each_with_object(Hash.new(0)) { |call, counts| counts[call] += 1 }
+        .sort_by { |_call, count| count }
+        .reverse
     end
   end
 end

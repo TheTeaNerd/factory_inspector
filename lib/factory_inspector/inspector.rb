@@ -7,10 +7,13 @@ require 'chronic_duration'
 module FactoryInspector
   # Inspects the Factory via the callback `analyze`
   class Inspector
-    include Term::ANSIColor
+    class ::String
+      include Term::ANSIColor
+    end
 
     def initialize
       @here = Dir.getwd
+      @local_call = /\A#{@here}/
       @reports = {}
       instrument_factory_girl
       @warnings = []
@@ -19,10 +22,13 @@ module FactoryInspector
     def generate_summary
       return if @reports.empty?
 
-      puts
-      puts bold + header + clear
-      sorted_reports.take(summary_size).each { |_, report| puts report }
-      puts "  (Slowest sorted by #{cyan + sort_description + clear}.)"
+      puts "\n#{header(highlighted: true)}"
+      slowest_reports.each { |_, report| puts report }
+      puts "  (Slowest sorted by #{sort_description.to_s.cyan}.)"
+    end
+
+    def slowest_reports
+      sorted_reports.take Configuration.summary_size
     end
 
     def generate_report(filename: Configuration.default_report_path)
@@ -41,10 +47,10 @@ module FactoryInspector
       end
       file.close
 
-      print "\nFull report in '#{cyan + relative(filename) + clear}'"
+      print "\nFull report in '#{relative(filename).to_s.cyan}'"
     end
 
-    def generate_warnings_log(filename: Configuration.default_warnings_log_path)
+    def generate_warnings_log(filename: Configuration.default_warnings_path)
       return if @warnings.empty?
 
       file = File.open(filename, 'w')
@@ -55,7 +61,7 @@ module FactoryInspector
       end
       file.close
 
-      puts "#{@warnings.size} warnings in '#{cyan + relative(filename) + clear}'"
+      print "\n#{@warnings.size} warning(s) in '#{relative(filename).to_s.cyan}'"
     end
 
     # Callback for use by ActiveSupport::Notifications.
@@ -95,31 +101,29 @@ module FactoryInspector
     end
 
     def call_stack
-      caller.grep(/#{@here}/).map do |call|
-        call.gsub(/\A#{@here}\/(.+)(:\d+):.+\z/, '\1\2')
+      caller.grep(@local_call).map do |call|
+        call.gsub(/#{@local_call}\/(.+):(\d+):.+\z/, '\1:\2')
       end
     end
 
-    def summary_size
-      5
-    end
-
     def sorted_reports
-      @sorted_reports ||= @reports.sort_by { |_, v| v }.reverse
+      @sorted_reports ||= @reports.sort_by { |_, report| report }.reverse
     end
 
     def sort_description
       FactoryInspector::Report.sort_description
     end
 
-    def header
-      'FACTORY INSPECTOR: ' \
-      "#{@reports.size} factories used, " \
-      "#{total_calls} calls made over #{pretty_total_time}\n\n" \
-      '  FACTORY NAME                     ' \
-      "TOTAL  TOTAL     TIME PER  LONGEST   STRATEGIES\n" \
-      '                                   ' \
-      "CALLS  TIME (s)  CALL (s)  CALL (s)  USED\n"
+    def header(highlighted: false)
+        string = "FACTORY INSPECTOR: ".bold +
+                 @reports.size.to_s.cyan + " factories used, ".bold +
+                 total_calls.to_s.cyan + " calls made over ".bold +
+                 pretty_total_time.to_s.cyan + "\n\n" +
+                 "  FACTORY NAME                     TOTAL  TOTAL     TIME PER  LONGEST   STRATEGIES\n".bold +
+                 '                                   CALLS  TIME (s)  CALL (s)  CALL (s)  USED'.bold +
+                 "\n".reset
+
+        highlighted ? string : string.uncolored
     end
 
     def instrument_factory_girl
