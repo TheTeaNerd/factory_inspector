@@ -16,7 +16,7 @@ describe FactoryInspector::Report do
     end
 
     it 'should have recorded zero calls' do
-      expect(@report.calls).to eq(0)
+      expect(@report.number_of_calls).to eq(0)
     end
 
     it 'should have a zero worst time' do
@@ -44,7 +44,7 @@ describe FactoryInspector::Report do
     end
 
     it 'should have incremented the call count' do
-      expect(@report.calls).to eq(2)
+      expect(@report.number_of_calls).to eq(2)
     end
 
     it 'should have recorded the total time' do
@@ -77,11 +77,11 @@ describe FactoryInspector::Report do
     end
 
     it 'should pretty print a slow factory correctly' do
-      expect(@bad.to_s).to match '  bad                                4     10.0000    2.50000  4.0000      create'
+      expect(@bad.to_s).to match "  bad                                4   10.0000   2.50000    4.0000  create\n"
     end
 
     it 'should pretty print a good factory correctly' do
-      expect(@good.to_s).to match '  good                               4      0.0090    0.00225  0.0030      build'
+      expect(@good.to_s).to match "  good                               4    0.0090   0.00225    0.0030  build\n"
     end
 
     describe '#comparable' do

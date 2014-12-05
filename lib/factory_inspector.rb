@@ -1,6 +1,6 @@
 require 'factory_inspector/inspector'
 
-# User facing API
+# User facing API, see README.md
 module FactoryInspector
   def self.instrument
     @inspector ||= Inspector.new
@@ -11,11 +11,10 @@ module FactoryInspector
     if @inspector.nil?
       warn 'WARNING: No FactoryInspector instrumentation found; ' \
            "did you forget to call 'FactoryInspector.instrument'?"
+      false
     else
-      @inspector.generate_summary
-      @inspector.generate_report
-      @inspector.generate_warnings_log
+      @inspector.results
+      true
     end
-    true
   end
 end
