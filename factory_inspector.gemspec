@@ -19,6 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'term-ansicolor'
   gem.add_runtime_dependency 'chronic_duration'
   gem.add_runtime_dependency 'hashr'
+  gem.add_runtime_dependency 'method_profiler'
 
   gem.add_development_dependency 'bundler'
   gem.add_development_dependency 'rspec'
