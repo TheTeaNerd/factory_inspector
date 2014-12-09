@@ -117,7 +117,7 @@ module FactoryInspector
 
       file = File.open(filename, 'w')
       file.write("#{@optimization_warnings.size} optimization warning(s)\n\n")
-      file.write("These warnings are for a Build strategy calling Create: in-memory strategy triggering DB creates are a common cause of slow tests, and are usually triggered via associations.\n\n"
+      file.write("These warnings are for a Build strategy calling Create: in-memory strategy triggering DB creates are a common cause of slow tests, and are usually triggered via associations.\n\n")
 
       @optimization_warnings.each do |warning|
         file.write("  * :#{warning.caller.factory}##{warning.caller.strategy} -> #{warning.called}\n")
