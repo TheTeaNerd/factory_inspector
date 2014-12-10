@@ -18,6 +18,7 @@ module FactoryInspector
     def initialize
       @local_dir = Dir.getwd
       @local_call = /\A#{@local_dir}/
+      @local_call_pattern = /#{@local_call}\/(.+:\d+):.+\z/
       @reports = {}
       @optimization_warnings = []
       @analysis_errors = []
@@ -52,6 +53,7 @@ module FactoryInspector
       return if @reports.empty?
 
       Reports.ensure_report_directory
+      generate_analysis
       generate_summary
       generate_report
       generate_analysis_errors_report
@@ -64,12 +66,15 @@ module FactoryInspector
       puts "\n#{header(highlighted: true)}"
       slowest_reports.each { |_factory, report| puts report }
       puts "  (Slowest sorted by #{highlight sort_description}.)"
+    end
 
+    def generate_analysis
       @reports.values.each do |report|
         @reports.values.each do |other_report|
           matching_calls = report.called_by? other_report
           if matching_calls
             other_report.factories_called << report.factory_name
+            $stderr.puts "\nThere are #{matching_calls.size} matching calls when #{report.factory_name} is called by #{other_report.factory_name}".red
 
             build_calls = matching_calls.select do |matching_call|
               matching_call.caller.build?
@@ -146,8 +151,8 @@ module FactoryInspector
     end
 
     def call_stack
-      caller.grep(@local_call).map do |call|
-        call.gsub(/#{@local_call}\/(.+):(\d+):.+\z/, '\1:\2')
+      caller.grep(@local_call) do |call|
+        call.gsub(@local_call_pattern, '\1')
       end
     end
 

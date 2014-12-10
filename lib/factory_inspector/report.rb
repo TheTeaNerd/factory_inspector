@@ -10,19 +10,13 @@ module FactoryInspector
 
     attr_reader :factory_name,
                 :number_of_calls,
-                :worst_time,
                 :total_time,
-                :strategies,
-                :calls
+                :factory_calls
     attr_accessor :factories_called
 
-    def initialize(factory_name: 'unknown')
+    def initialize(factory_name:)
       @factory_name = factory_name
-      @number_of_calls = 0
-      @worst_time = 0
-      @total_time = 0
-      @strategies = []
-      @calls = []
+      @factory_calls = []
       @factories_called = []
     end
 
@@ -34,19 +28,25 @@ module FactoryInspector
     end
 
     def time_per_call
-      (@number_of_calls == 0) ? 0 : (@total_time.to_f / @number_of_calls.to_f)
+      (number_of_calls == 0) ? 0 : (total_time.to_f / number_of_calls.to_f)
     end
 
     # Update this report with a new factory call
     # * [time] The time taken, in seconds, to call the factory
     # * [strategy] The strategy used by the factory
-    def update(time: 0, strategy: '', call_stack: [])
-      @number_of_calls += 1
-      record_time(time: time)
-      @strategies << strategy.to_s
-      @calls << FactoryInspector::FactoryCall.new(factory: factory_name,
-                                                  stack: call_stack,
-                                                  strategy: strategy)
+    def update(time:, strategy:, call_stack:)
+      @factory_calls << FactoryCall.new(factory: @factory_name,
+                                        stack: call_stack,
+                                        strategy: strategy,
+                                        time: time)
+    end
+
+    def number_of_calls
+      @factory_calls.size
+    end
+
+    def total_time
+      @total_time ||= @factory_calls.sum(&:time)
     end
 
     def self.sort_description
@@ -70,32 +70,33 @@ module FactoryInspector
     def called_by?(other)
       return false if other == self
 
-      result = other.calls.reduce([]) do |memo, other_call_stack|
-        match = callers_include?(other_call_stack)
-        if match
-          memo << Hashr.new(called: match, caller: other_call_stack)
+      calls = other.factory_calls.reduce([]) do |memo, other_factory_call|
+
+        matching_calls = @factory_calls.select do |previous_factory_call|
+          previous_factory_call.called_by? other_factory_call
+        end
+
+        if matching_calls.any?
+          memo << Hashr.new(called: matching_calls, caller: other_factory_call)
         end
         memo
       end
-      result.any? ? result : false
+
+      calls.any? ? calls : false
     end
 
     private
 
-    def callers_include?(factory_call)
-      matches = @calls.select do |previous_call|
-        ((factory_call.stack & previous_call.stack).size == factory_call.stack.size)
-      end
-      matches.any? ? matches : false
+    def worst_time
+      @worst_time ||= @factory_calls.max_by(&:time).time
     end
 
-    def record_time(time: 0)
-      @worst_time = time if time > @worst_time
-      @total_time += time
+    def strategies
+      @factory_calls.map(&:strategy).uniq
     end
 
     def calls_by_count
-      calls.map(&:stack)
+      factory_calls.map(&:stack)
         .map { |stack| stack.join(' <- ').gsub(/\A/, '    ') }
         .each_with_object(Hash.new(0)) { |call, counts| counts[call] += 1 }
         .sort_by { |_call, count| count }

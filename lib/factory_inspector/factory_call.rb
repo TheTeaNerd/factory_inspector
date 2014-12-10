@@ -2,12 +2,13 @@ require 'hashr'
 
 module FactoryInspector
   class FactoryCall
-    attr_reader :factory, :stack, :strategy
+    attr_reader :factory, :stack, :strategy, :time
 
-    def initialize(factory:, stack:, strategy:)
+    def initialize(factory:, stack:, strategy:, time:)
       @factory = factory
       @stack = stack
       @strategy = strategy
+      @time = time
     end
 
     def printable_stack
@@ -20,6 +21,12 @@ module FactoryInspector
 
     def create?
       @strategy == :create
+    end
+
+    def called_by?(other)
+      stack = other.stack
+      size = stack.size
+      (stack & @stack).size == size
     end
 
     def ==(other)
