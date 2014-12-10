@@ -71,21 +71,20 @@ module FactoryInspector
     def generate_analysis
       @reports.values.each do |report|
         @reports.values.each do |other_report|
+          next if report == other_report
+
           matching_calls = report.called_by? other_report
           if matching_calls
             other_report.factories_called << report.factory_name
-            $stderr.puts "\nThere are #{matching_calls.size} matching calls when #{report.factory_name} is called by #{other_report.factory_name}".red
 
-            build_calls = matching_calls.select do |matching_call|
-              matching_call.caller.build?
-            end
-            build_calls.each do |build_call|
-              called_creates = build_call.called.select(&:create?)
-              called_creates.each do |call|
+            matching_calls.select { |match| match.caller.build? }
+                          .each do |build_call|
+              build_call.called.select(&:create?).each do |call|
                 @optimization_warnings << Hashr.new(caller: build_call.caller, called: call)
               end
             end
           end
+
         end
       end
     end
