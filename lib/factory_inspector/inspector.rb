@@ -136,8 +136,8 @@ module FactoryInspector
 
       file = File.open(filename, 'w')
       file.write("#{@analysis_errors.size} analysis error(s)\n\n")
-      @analysis_errors.each do |analysis_error|
-        file.write("  * #{analysis_error.message}\n")
+      @analysis_errors.each_with_index do |analysis_error, index|
+        file.write("  #{index}. #{analysis_error.message}\n")
         file.write("    * #{analysis_error.printable_call_stack}\n")
       end
       file.close
