@@ -123,8 +123,11 @@ module FactoryInspector
       file.write("#{@optimization_warnings.size} optimization warning(s)\n\n")
       file.write("These warnings are for a Build strategy calling Create: in-memory strategy triggering DB creates are a common cause of slow tests, and are usually triggered via associations.\n\n")
 
-      @optimization_warnings.each do |warning|
-        file.write("  * :#{warning.caller.factory}##{warning.caller.strategy} -> #{warning.called}\n")
+      collapsed_warnings = @optimization_warnings.each_with_object(Hash.new(0)) do |warning, counts|
+        counts[warning] += 1
+      end
+      collapsed_warnings.each do |warning, count|
+        file.write("  * :#{warning.caller.factory}##{warning.caller.strategy} -> #{warning.called}#{count > 1 ? " (#{count} occurences)" : ''}\n")
       end
       file.close
 
@@ -136,9 +139,14 @@ module FactoryInspector
 
       file = File.open(filename, 'w')
       file.write("#{@analysis_errors.size} analysis error(s)\n\n")
-      @analysis_errors.each_with_index do |analysis_error, index|
+
+
+      collapsed_errors = @analysis_errors.each_with_object(Hash.new(0)) do |errors, counts|
+        counts[errors] += 1
+      end
+      collapsed_errors.each_with_index do |(analysis_error, count), index|
         file.write("  #{index}. #{analysis_error.message}\n")
-        file.write("    * #{analysis_error.printable_call_stack}\n")
+        file.write("    * #{analysis_error.printable_call_stack}#{count > 1 ? " (#{count} occurences)" : ''}\n")
       end
       file.close
 
