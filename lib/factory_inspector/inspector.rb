@@ -5,24 +5,29 @@ require 'term/ansicolor'
 require 'factory_inspector/analysis_error'
 require 'factory_inspector/configuration'
 require 'factory_inspector/factory_call'
+require 'factory_inspector/human_counts'
 require 'factory_inspector/report'
 require 'factory_inspector/reports'
 
 module FactoryInspector
   # Inspects the Factory via the callback `analyze_notification`
   class Inspector
+    include ::FactoryInspector::HumanCounts
+
     class ::String
       include Term::ANSIColor
     end
 
     def initialize
       @local_dir = Dir.getwd
-      @local_call = /\A#{@local_dir}/
-      @local_call_pattern = /#{@local_call}\/(.+:\d+):.+\z/
       @reports = {}
       @optimization_warnings = []
       @analysis_errors = []
+      @analyze_notification_calls = 0
       instrument_factory_girl
+
+      @local_call = /\A#{@local_dir}/
+      @local_pattern = /#{@local_call}\/(.+:\d+):.+\z/
     end
 
     # Callback for use by ActiveSupport::Notifications.
@@ -34,6 +39,7 @@ module FactoryInspector
     # * [strategy] The strategy used when calling the factory
     #
     def analyze_notification(factory, start, finish, strategy)
+      call_stack = dump_call_stack
       execution_time = (finish - start)
       if execution_time == 0.0
         message = "A call to :#{factory}##{strategy} took zero time; " \
@@ -46,6 +52,7 @@ module FactoryInspector
                                  strategy: strategy,
                                  call_stack: call_stack)
       end
+      @analyze_notification_calls += 1
       nil
     end
 
@@ -120,14 +127,14 @@ module FactoryInspector
       return if @optimization_warnings.empty?
 
       file = File.open(filename, 'w')
-      file.write("#{@optimization_warnings.size} optimization warning(s)\n\n")
-      file.write("These warnings are for a Build strategy calling Create: in-memory strategy triggering DB creates are a common cause of slow tests, and are usually triggered via associations.\n\n")
+      file.write("#{@optimization_warnings.size} optimization warning(s) - ")
+      file.write("In-memory :build strategy calls are calling DB-hitting :create calls; this is usually unintended and triggered via associations in the Factory or Model.\n\n")
 
       collapsed_warnings = @optimization_warnings.each_with_object(Hash.new(0)) do |warning, counts|
         counts[warning] += 1
       end
       collapsed_warnings.each do |warning, count|
-        file.write("  * :#{warning.caller.factory}##{warning.caller.strategy} -> #{warning.called}#{count > 1 ? " (#{count} occurences)" : ''}\n")
+        file.write("  * #{warning.caller.description} calls #{warning.called.description} #{human_count count} due to #{warning.called.printable_stack} (#{warning.called.description})\n")
       end
       file.close
 
@@ -157,10 +164,10 @@ module FactoryInspector
       filename.gsub(/#{@local_dir}/, '.')
     end
 
-    def call_stack
+    def dump_call_stack
       caller.grep(@local_call) do |call|
-        call.gsub(@local_call_pattern, '\1')
-      end
+        call.gsub(@local_pattern, '\1')
+      end.uniq.reverse
     end
 
     def sorted_reports
@@ -192,7 +199,7 @@ module FactoryInspector
     end
 
     def pretty_total_time
-      ChronicDuration.output(total_time.round(2), keep_zero: true)
+      @pretty_total_time ||= ChronicDuration.output(total_time.round(2), keep_zero: true)
     end
 
     def total_time
@@ -200,7 +207,7 @@ module FactoryInspector
     end
 
     def total_number_of_calls
-      @reports.values.sum(&:number_of_calls)
+      @analyze_notification_calls
     end
 
     def highlight(string)

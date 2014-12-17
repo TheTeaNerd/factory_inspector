@@ -9,7 +9,7 @@ module FactoryInspector
   end
 
   def self.instrument
-    classes_to_profile = [Inspector]
+    classes_to_profile = [FactoryCall]
 
     @profilers = classes_to_profile.map do |class_to_profile|
       MethodProfiler.observe class_to_profile

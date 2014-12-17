@@ -42,7 +42,7 @@ module FactoryInspector
     end
 
     def number_of_calls
-      @factory_calls.size
+      @number_of_calls ||= @factory_calls.size
     end
 
     def total_time
@@ -64,15 +64,16 @@ module FactoryInspector
              total_time,
              time_per_call,
              worst_time,
-             strategies.uniq.join(', '))
+             strategies.join(', '))
     end
 
     def called_by?(other)
       return false if other == self
 
       calls = other.factory_calls.reduce([]) do |memo, other_factory_call|
+        next memo if other_factory_call.stack.one?
 
-        matching_calls = @factory_calls.select do |previous_factory_call|
+        matching_calls = factory_calls.select do |previous_factory_call|
           previous_factory_call.called_by? other_factory_call
         end
 
@@ -92,7 +93,7 @@ module FactoryInspector
     end
 
     def strategies
-      @factory_calls.map(&:strategy).uniq
+      @strategies ||= @factory_calls.map(&:strategy).uniq
     end
 
     def calls_by_count

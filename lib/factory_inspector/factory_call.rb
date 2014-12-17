@@ -12,7 +12,7 @@ module FactoryInspector
     end
 
     def printable_stack
-      @stack.reverse.join(' -> ')
+      @printable_stack ||= @stack.join('->')
     end
 
     def build?
@@ -24,25 +24,31 @@ module FactoryInspector
     end
 
     def called_by?(other)
-      stack = other.stack
-      size = stack.size
-      (stack & @stack).size == size
+      return false if @stack.one?
+      (other.stack & @stack).size == other.stack.size
     end
 
-    def ==(other)
-      self.class == other.class &&
-        factory == other.factory &&
-        stack == other.stack &&
-        strategy == other.strategy
+    def eql?(other)
+      if other.equal?(self)
+        return true
+      elsif !self.class.equal?(other.class)
+        return false
+      end
+      other.factory == @factory &&
+        other.strategy == @strategy &&
+        other.stack == @stack
     end
-    alias_method :eql?, :==
 
     def hash
       [@factory, @stack, @strategy].hash
     end
 
+    def description
+      ":#{@factory}##{@strategy}"
+    end
+
     def to_s
-      ":#{factory}##{strategy} called by #{printable_stack}"
+      "#{description} due to #{printable_stack}"
     end
   end
 end
