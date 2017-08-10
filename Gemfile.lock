@@ -1,9 +1,11 @@
 PATH
   remote: .
   specs:
-    factory_inspector (0.6.0)
+    factory_inspector (0.7.0)
       activesupport
       chronic_duration
+      hashr
+      method_profiler
       term-ansicolor
 
 GEM
@@ -19,8 +21,12 @@ GEM
       numerizer (~> 0.1.1)
     coderay (1.1.0)
     diff-lcs (1.2.5)
+    hashr (0.0.22)
+    hirb (0.7.2)
     i18n (0.6.11)
     json (1.8.1)
+    method_profiler (2.0.1)
+      hirb (>= 0.6.0)
     method_source (0.8.2)
     minitest (5.4.3)
     numerizer (0.1.1)
